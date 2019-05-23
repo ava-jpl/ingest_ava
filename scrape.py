@@ -42,7 +42,7 @@ def main():
     print('ava returned {} items.'.format(len(ava_gran_dct.keys())))
 
     #for each item, see if it's been ingested. if it has query the CMR and get the metadata
-    for granule_ur, product_url in ava_gran_dct.iteritems():
+    for granule_ur, product_url in ava_gran_dct.items():
         cmr_url = CMR_URL.format(granule_ur)
         response = requests.get(cmr_url, timeout=10)
         response.raise_for_status()
