@@ -13,6 +13,7 @@ import dateutil.parser
 import requests
 from hysds.celery import app
 from hysds.dataset_ingest import ingest
+import hysds.orchestrator
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
