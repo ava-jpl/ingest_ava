@@ -1,5 +1,5 @@
 {
-  "command":"/home/ops/verdi/ops/ava_ingest/scrape.py",
+  "command":"/home/ops/verdi/ops/ingest_ava/scrape.py",
   "recommended_queues":["factotum-job_worker-small", "factotum-job_worker-large", "ava-job_worker-small"],
   "imported_worker_files": {
     "/home/ops/.netrc": "/home/ops/.netrc",
