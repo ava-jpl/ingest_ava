@@ -88,7 +88,7 @@ def localize_product(prod_id, metadata):
     ava_url = metadata.get('ava_url', False)
     if ava_url is False:
         raise Exception('cannot localize product. metadata.ava_url parameter is empty')
-    product_path = os.path.join(prod_id, '{}.{}'.format(prod_id, 'hdf'))
+    prod_path = os.path.join(prod_id, '{}.{}'.format(prod_id, 'hdf'))
     localize(ava_url, prod_path)
     for obj in metadata.get('links', []):
         url = obj.get('href', False)
