@@ -1,0 +1,24 @@
+    {
+      "ipath": "hysds::data/AST_09T",
+      "match_pattern": "/(?P<short_name>AST_09T)-(?P<year>\\d{4})(?P<month>\\d{2})(?P<day>\\d{2})(?P<rest>.*)-(?P<version>.*?)$",
+      "alt_match_pattern": null,
+      "extractor": null,
+      "level": "l2",
+      "type": "granule",
+      "publish": {
+        "s3-profile-name": "default",
+        "location": "s3://{{ DATASET_S3_ENDPOINT }}:80/{{ DATASET_BUCKET }}/products/{short_name}/{version}/{year}/{month}/{day}",
+        "urls": [
+          "http://{{ DATASET_BUCKET }}.{{ DATASET_S3_WEBSITE_ENDPOINT }}/products/{short_name}/{version}/{year}/{month}/{day}",
+          "s3://{{ DATASET_S3_ENDPOINT }}:80/{{ DATASET_BUCKET }}/products/{short_name}/{version}/{year}/{month}/{day}"
+        ]
+      },
+      "browse": {
+        "s3-profile-name": "default",
+        "location": "s3://{{ DATASET_S3_ENDPOINT }}:80/{{ DATASET_BUCKET }}/browse/{short_name}/{version}/{year}/{month}/{day}",
+        "urls": [
+          "http://{{ DATASET_BUCKET }}.{{ DATASET_S3_WEBSITE_ENDPOINT }}/browse/{short_name}/{version}/{year}/{month}/{day}",
+          "s3://{{ DATASET_S3_ENDPOINT }}:80/{{ DATASET_BUCKET }}/browse/{short_name}/{version}/{year}/{month}/{day}"
+        ]
+      }
+    }

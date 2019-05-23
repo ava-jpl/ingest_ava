@@ -1,0 +1,35 @@
+{
+    "label": "Ingest - AVA Product from Metadata",
+    "submission_type": "iteration",
+    "enable_dedup": false,
+    "params" : [
+    {
+      "name": "ava_url",
+      "from": "dataset_jpath:_source.metadata.ava_url"
+    },
+    {
+      "name": "on_ava",
+      "from": "dataset_jpath:_source.metadata.on_ava"
+    },
+    {
+      "name": "metadata",
+      "from": "dataset_jpath:_source.metadata"
+    },
+    {
+      "name": "starttime",
+      "from": "dataset_jpath:_source.starttime"
+    },
+    {
+      "name": "endtime",
+      "from": "dataset_jpath:_source.endtime"
+    },
+    {
+      "name": "location",
+      "from": "dataset_jpath:_source.location"
+    },
+    {
+      "name": "short_name",
+      "from": "dataset_jpath:_source.metadata.short_name"
+    }
+  ]
+}

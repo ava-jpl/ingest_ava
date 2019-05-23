@@ -1,0 +1,41 @@
+{
+  "command":"/home/ops/verdi/ops/ingest_ava/ingest.py",
+  "imported_worker_files": {
+    "/home/ops/.netrc": "/home/ops/.netrc",
+    "/home/ops/.aws": "/home/ops/.aws"
+  },
+  "disk_usage":"10GB",
+  "recommended-queues": ["factotum-job_worker-large", "ava-job_worker-large", "ava-job_worker-small"],
+  "soft_time_limit": 2000,
+  "time_limit": 2800,
+  "params" : [
+    {
+      "name": "ava_url",
+      "destination": "context"
+    },
+    {
+      "name": "on_ava",
+      "destination": "context"
+    },
+    {
+      "name": "metadata",
+      "destination": "context"
+    },
+    {
+      "name": "starttime",
+      "destination": "context"
+    },
+    {
+      "name": "endtime",
+      "destination": "context"
+    },
+    {
+      "name": "location",
+      "destination": "context"
+    },
+    {
+      "name": "short_name",
+      "destination": "context"
+    }
+  ]
+}

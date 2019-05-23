@@ -1,0 +1,17 @@
+{
+  "command":"/home/ops/verdi/ops/ava_ingest/scrape.py",
+  "recommended_queues":["factotum-job_worker-small", "factotum-job_worker-large", "ava-job_worker-small"],
+  "imported_worker_files": {
+    "/home/ops/.netrc": "/home/ops/.netrc",
+    "/home/ops/.aws": "/home/ops/.aws"
+  },
+  "disk_usage":"10GB",
+  "soft_time_limit": 162000,
+  "time_limit": 163000,
+  "params" : [
+    {
+      "name": "short_name",
+      "destination": "context"
+    }
+  ]
+}

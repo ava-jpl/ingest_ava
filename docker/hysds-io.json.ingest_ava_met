@@ -1,0 +1,14 @@
+{
+  "label" : "Ingest - AVA Metadata",
+  "submission_type" : "individual",
+  "component" : "tosca",
+  "allowed_accounts" : ["ops"],
+  "params" : [
+    {
+      "name": "short_name",
+      "from": "submitter",
+      "type": "enum",
+      "enumerables": ["AST_L1B", "AST_09T"]
+    }
+  ]
+}
