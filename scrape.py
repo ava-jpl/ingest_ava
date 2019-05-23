@@ -166,8 +166,8 @@ def get_session(verbose=False):
 
 def run_query(query_url, verbose=False):
     """runs a scrolling query over the given url and returns the result as a dictionary"""
-    if verbose:
-        print('querying url: {0}'.format(query_url))
+    #if verbose:
+    #    print('querying url: {0}'.format(query_url))
     granule_list = []
     session = get_session(verbose=verbose)
     #initial query
