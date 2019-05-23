@@ -4,7 +4,7 @@ LABEL description="Ingest products from metadata"
 
 USER ops
 
-COPY . /home/ops/verdi/ops/ast_09t
+COPY . /home/ops/verdi/ops/ingest_ava
 
 WORKDIR /home/ops
 CMD ["/bin/bash", "--login"]
