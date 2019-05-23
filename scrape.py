@@ -46,7 +46,7 @@ def main():
         cmr_url = CMR_URL.format(granule_ur)
         response = requests.get(cmr_url, timeout=10)
         response.raise_for_status()
-        granule = json.loads(response.text)["feed"]["entry"]
+        granule = json.loads(response.text)["feed"]["entry"][0]
         granule['ava_url'] = product_url
         granule['on_ava'] = True
         granule['short_name'] = shortname
