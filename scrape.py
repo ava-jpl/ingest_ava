@@ -21,7 +21,7 @@ VERSION = "v1.0"
 PROD = "MET-{}-{}-{}"
 PROD_TYPE = "grq_{}_metadata-{}"
 CMR_URL = 'https://cmr.earthdata.nasa.gov/search/granules.json?granule_ur={}&provider-id=LPDAAC_ECS'
-AVA_URL = 'https://ava.jpl.nasa.gov/retrieve/list_{}.php'
+AVA_URL = 'https://ava.jpl.nasa.gov/retrieve/list_{}.php?year={}' # example: https://ava.jpl.nasa.gov/retrieve/list_AST_L1B.php?year=2000
 
 def main():
     '''
@@ -32,32 +32,40 @@ def main():
     shortname = ctx.get("short_name", False)
     if not shortname:
         raise Exception("short_name must be specified.")
+    start_year = ctx.get("start_year", False)
+    if not start_year:
+        raise Exception("start_year must be specified.")
+    end_year = ctx.get("end_year", False)
+    if not end_year:
+        raise Exception("end_year must be specified.")
 
-    #query the ava
-    print('querying the AVA for {} products...'.format(shortname))
-    ava_url = AVA_URL.format(shortname)
-    #ave returns a very simple json
-    response = requests.get(ava_url, timeout=450)
-    response.raise_for_status()
-    ava_gran_dct = json.loads(response.text)
-    print('ava returned {} items.'.format(len(ava_gran_dct.keys())))
-
-    #for each item, see if it's been ingested. if it has query the CMR and get the metadata
-    for granule_ur, product_url in ava_gran_dct.items():
-        cmr_url = CMR_URL.format(granule_ur)
-        response = requests.get(cmr_url, timeout=10)
+    # Iterate from start_year to end_year
+    for year in range(start_year, end_year):
+        #query the ava
+        print('querying the AVA for {} {} products...'.format(year, shortname))
+        ava_url = AVA_URL.format(shortname, year)
+        #ave returns a very simple json
+        response = requests.get(ava_url, timeout=450)
         response.raise_for_status()
-        granule = json.loads(response.text)["feed"]["entry"][0]
-        granule['ava_url'] = product_url
-        granule['on_ava'] = True
-        granule['short_name'] = shortname
-        ds, met = gen_product(granule, shortname)
-        uid = ds.get('label')
-        print('ingesting: {}'.format(uid))
-        if exists(uid, shortname):
-            continue
-        #save_product_met(uid, ds, met)
-        ingest_product(uid, ds, met)
+        ava_gran_dct = json.loads(response.text)
+        print('ava returned {} items.'.format(len(ava_gran_dct.keys())))
+
+        #for each item, see if it's been ingested. if it has query the CMR and get the metadata
+        for granule_ur, product_url in ava_gran_dct.items():
+            cmr_url = CMR_URL.format(granule_ur)
+            response = requests.get(cmr_url, timeout=10)
+            response.raise_for_status()
+            granule = json.loads(response.text)["feed"]["entry"][0]
+            granule['ava_url'] = product_url
+            granule['on_ava'] = True
+            granule['short_name'] = shortname
+            ds, met = gen_product(granule, shortname)
+            uid = ds.get('label')
+            print('ingesting: {}'.format(uid))
+            if exists(uid, shortname):
+                continue
+            #save_product_met(uid, ds, met)
+            ingest_product(uid, ds, met)
 
 def gen_temporal_str(starttime, endtime):
     '''generates the temporal string for the cmr query'''

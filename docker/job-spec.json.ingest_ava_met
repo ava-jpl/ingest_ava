@@ -12,6 +12,14 @@
     {
       "name": "short_name",
       "destination": "context"
+    },
+    {
+      "name": "start_year",
+      "destination": "context"
+    },
+    {
+      "name": "end_year",
+      "destination": "context"
     }
   ]
 }
