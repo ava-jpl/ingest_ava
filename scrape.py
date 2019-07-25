@@ -31,7 +31,7 @@ def main():
 
     # create log file
     logger.basicConfig(format='%(asctime)s %(levelname)s %(message)s',
-                       filename=LOG_FILE_NAME,
+                       filename="ava_ingest_met.log",
                        filemode='w',
                        level=logger.INFO)
 
@@ -40,10 +40,10 @@ def main():
     shortname = ctx.get("short_name", False)
     if not shortname:
         raise Exception("short_name must be specified.")
-    start_year = ctx.get("start_year", False)
+    start_year = int(ctx.get("start_year", False))
     if not start_year:
         raise Exception("start_year must be specified.")
-    end_year = ctx.get("end_year", False)
+    end_year = int(ctx.get("end_year", False))
     if not end_year:
         raise Exception("end_year must be specified.")
 
