@@ -10,6 +10,7 @@ import math
 import shutil
 import urllib3
 import dateutil.parser
+import logging as logger
 import requests
 from hysds.celery import app
 from hysds.dataset_ingest import ingest
@@ -27,6 +28,13 @@ def main():
     '''
     Scrapes the AVA for 09T or L1B, then ingests the metadata for those products, allowing for future ingest.
     '''
+
+    # create log file
+    logger.basicConfig(format='%(asctime)s %(levelname)s %(message)s',
+                       filename=LOG_FILE_NAME,
+                       filemode='w',
+                       level=logger.INFO)
+
     # load parameters
     ctx = load_context()
     shortname = ctx.get("short_name", False)
@@ -42,13 +50,13 @@ def main():
     # Iterate from start_year to end_year
     for year in range(start_year, end_year):
         #query the ava
-        print('querying the AVA for {} {} products...'.format(year, shortname))
+        logger.info('querying the AVA for {} {} products...'.format(year, shortname))
         ava_url = AVA_URL.format(shortname, year)
         #ave returns a very simple json
         response = requests.get(ava_url, timeout=450)
         response.raise_for_status()
         ava_gran_dct = json.loads(response.text)
-        print('ava returned {} items.'.format(len(ava_gran_dct.keys())))
+        logger.info('ava returned {} items.'.format(len(ava_gran_dct.keys())))
 
         #for each item, see if it's been ingested. if it has query the CMR and get the metadata
         for granule_ur, product_url in ava_gran_dct.items():
@@ -61,7 +69,7 @@ def main():
             granule['short_name'] = shortname
             ds, met = gen_product(granule, shortname)
             uid = ds.get('label')
-            print('ingesting: {}'.format(uid))
+            logger.info('ingesting: {}'.format(uid))
             if exists(uid, shortname):
                 continue
             #save_product_met(uid, ds, met)
@@ -131,9 +139,9 @@ def ingest_product(uid, ds, met):
     save_product_met(uid, ds, met)
     ds_dir = os.path.join(os.getcwd(), uid)
     if exists(uid, shortname):
-        print('Product already exists with uid: {}. Passing on publish...'.format(uid))
+        logger.info('Product already exists with uid: {}. Passing on publish...'.format(uid))
         return
-    print('Product with uid: {} does not exist. Publishing...'.format(uid))
+    logger.info('Product with uid: {} does not exist. Publishing...'.format(uid))
     try:
         ingest(uid, './datasets.json', app.conf.GRQ_UPDATE_URL, app.conf.DATASET_PROCESSED_QUEUE, ds_dir, None) 
         if os.path.exists(uid):
@@ -188,32 +196,32 @@ def run_query(query_url, verbose=False):
     headers = {'CMR-Scroll-Id' : scroll_id}
     if len(granule_list) is 0:
         if verbose > 0:
-            print('no granules returned')
+            logger.info('no granules returned')
         return []
     pages = int(math.ceil(float(tot_granules) / len(granule_list)))
     if verbose > 1:
-        print("total granules matching query: {0}".format(tot_granules))
-        print("Over {0} pages".format(pages))
-        print("Using scroll-id: {0}".format(scroll_id))
+        logger.info("total granules matching query: {0}".format(tot_granules))
+        logger.info("Over {0} pages".format(pages))
+        logger.info("Using scroll-id: {0}".format(scroll_id))
     if verbose > 2:
-        print("response text: {0}".format(response.text))
-        print("response headers: {0}".format(response.headers))
+        logger.info("response text: {0}".format(response.text))
+        logger.info("response headers: {0}".format(response.headers))
     for i in range(1, pages):
         if verbose > 1:
-            print("querying page {0}".format(i+1))
+            logger.info("querying page {0}".format(i+1))
         response = session.get(query_url, headers=headers)
         response.raise_for_status()
         granule_returns = json.loads(response.text)["feed"]["entry"]
         if verbose > 1:
-            print("query returned {0} granules".format(len(granule_returns)))
+            logger.info("query returned {0} granules".format(len(granule_returns)))
         if verbose > 2:
-            print("response text: {0}".format(response.text))
-            print("response headers: {0}".format(response.headers))
-            print('with {0} granules'.format(len(granule_returns)))
+            logger.info("response text: {0}".format(response.text))
+            logger.info("response headers: {0}".format(response.headers))
+            logger.info('with {0} granules'.format(len(granule_returns)))
         granule_list.extend(granule_returns)
     #text = json.dumps(granule_list, sort_keys=True, indent=4, separators=(',', ': '))
     if verbose:
-        print("query returned {0} total granules".format(len(granule_list)))
+        logger.info("query returned {0} total granules".format(len(granule_list)))
     if len(granule_list) != int(tot_granules):
         raise Exception("Total granules returned from query do not match expected granule count")
     return granule_list
@@ -239,7 +247,7 @@ def exists(uid, shortname):
 
 def query_es(grq_url, es_query):
     '''simple single elasticsearch query, used for existence. returns count of result.'''
-    print('querying: {} with {}'.format(grq_url, es_query))
+    logger.info('querying: {} with {}'.format(grq_url, es_query))
     response = requests.post(grq_url, data=json.dumps(es_query), verify=False)
     try:
         response.raise_for_status()
