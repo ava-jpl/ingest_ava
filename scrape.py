@@ -28,7 +28,6 @@ def main():
     '''
     Scrapes the AVA for 09T or L1B, then ingests the metadata for those products, allowing for future ingest.
     '''
-
     # create log file
     logger.basicConfig(format='%(asctime)s %(levelname)s %(message)s',
                        filename="ava_ingest_met.log",
@@ -40,23 +39,25 @@ def main():
     shortname = ctx.get("short_name", False)
     if not shortname:
         raise Exception("short_name must be specified.")
-    start_year = int(ctx.get("start_year", False))
+    start_year = int(ctx.get("start_year"))
     if not start_year:
         raise Exception("start_year must be specified.")
-    end_year = int(ctx.get("end_year", False))
+    end_year = int(ctx.get("end_year"))
     if not end_year:
         raise Exception("end_year must be specified.")
+    if end_year < start_year:
+        raise Exception("end_year must be greater than or equal to start_year")
 
     # Iterate from start_year to end_year
-    for year in range(start_year, end_year):
+    for year in range(start_year, (end_year+1)):
         #query the ava
-        logger.info('querying the AVA for {} {} products...'.format(year, shortname))
         ava_url = AVA_URL.format(shortname, year)
+        logger.info('Querying AVA for year({}) and product({}) from: {}'.format(year, shortname, ava_url))
         #ave returns a very simple json
-        response = requests.get(ava_url, timeout=450)
+        response = requests.get(ava_url, timeout=450, verify=False)
         response.raise_for_status()
         ava_gran_dct = json.loads(response.text)
-        logger.info('ava returned {} items.'.format(len(ava_gran_dct.keys())))
+        logger.info('AVA returned {} items.'.format(len(ava_gran_dct.keys())))
 
         #for each item, see if it's been ingested. if it has query the CMR and get the metadata
         for granule_ur, product_url in ava_gran_dct.items():
