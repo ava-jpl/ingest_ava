@@ -103,7 +103,7 @@ def localize_product(prod_id, metadata):
 
 def localize(url, prod_path):
     '''attempts to localize the product'''
-    status = os.system('wget -O {} {}'.format(prod_path, url))
+    status = os.system('wget --no-check-certificate -O {} {}'.format(prod_path, url))
     if status == 0:
         #succeeds
         if os.path.exists(prod_path):
