@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 '''
-scrapes the current AVA and submits jobs for 09T or L1B products
+Purpose: scrapes the current AVA and submits jobs for 09T or L1B products
 '''
 from __future__ import print_function
 import os
@@ -12,6 +12,7 @@ import urllib3
 import dateutil.parser
 import logging as logger
 import requests
+import csv
 from hysds.celery import app
 from hysds.dataset_ingest import ingest
 import hysds.orchestrator
@@ -28,11 +29,17 @@ def main():
     '''
     Scrapes the AVA for 09T or L1B, then ingests the metadata for those products, allowing for future ingest.
     '''
-    # create log file
+    # Create main log file
     logger.basicConfig(format='%(asctime)s %(levelname)s %(message)s',
-                       filename="ava_ingest_met.log",
+                       filename='ava_ingest_met.log',
                        filemode='w',
                        level=logger.INFO)
+
+    # Create missing LP_DAAC ID product csv file
+    mp_csv = open("missing_lp_daac_id_products.csv", "w")
+    header = ["missing_lp_daac_id_products", "ava_product_url"]
+    mp_writer = csv.DictWriter(mp_csv, fieldnames=header)
+    mp_writer.writeheader()
 
     # load parameters
     ctx = load_context()
@@ -49,32 +56,48 @@ def main():
         raise Exception("end_year must be greater than or equal to start_year")
 
     # Iterate from start_year to end_year
+    total_granules=0
+    non_ingested_granules=0
     for year in range(start_year, (end_year+1)):
         #query the ava
         ava_url = AVA_URL.format(shortname, year)
         logger.info('Querying AVA for year({}) and product({}) from: {}'.format(year, shortname, ava_url))
+        print('Querying AVA for year({}) and product({}) from: {}'.format(year, shortname, ava_url))
         #ave returns a very simple json
         response = requests.get(ava_url, timeout=450, verify=False)
         response.raise_for_status()
         ava_gran_dct = json.loads(response.text)
         logger.info('AVA returned {} items.'.format(len(ava_gran_dct.keys())))
+        print('AVA returned {} items.'.format(len(ava_gran_dct.keys())))
+        total_granules += len(ava_gran_dct.items())
 
         #for each item, see if it's been ingested. if it has query the CMR and get the metadata
         for granule_ur, product_url in ava_gran_dct.items():
-            cmr_url = CMR_URL.format(granule_ur)
-            response = requests.get(cmr_url, timeout=10)
-            response.raise_for_status()
-            granule = json.loads(response.text)["feed"]["entry"][0]
-            granule['ava_url'] = product_url
-            granule['on_ava'] = True
-            granule['short_name'] = shortname
-            ds, met = gen_product(granule, shortname)
-            uid = ds.get('label')
-            logger.info('ingesting: {}'.format(uid))
-            if exists(uid, shortname):
-                continue
-            #save_product_met(uid, ds, met)
-            ingest_product(uid, ds, met)
+            if granule_ur == '': # If LP_DAAC ID is None, log missing product
+                product = product_url.split('/')[-1]
+                logger.error("Missing LP DAAC ID for : {}".format(product_url))
+                mp_writer.writerows([{"missing_lp_daac_id_products": product, "ava_product_url": product_url}])
+                non_ingested_granules += 1
+            else:
+                cmr_url = CMR_URL.format(granule_ur)
+                response = requests.get(cmr_url, timeout=10)
+                response.raise_for_status()
+                logger.info("CMR URL: {} returned status code: {}".format(cmr_url, response.status_code))
+                granule = json.loads(response.text)["feed"]["entry"][0]
+                granule['ava_url'] = product_url
+                granule['on_ava'] = True
+                granule['short_name'] = shortname
+                ds, met = gen_product(granule, shortname)
+                uid = ds.get('label')
+                logger.info('ingesting: {}'.format(uid))
+                if exists(uid, shortname):
+                    continue
+                #save_product_met(uid, ds, met)
+                ingest_product(uid, ds, met)
+    # Calculate number of granules ingested
+    granules_ingested = total_granules - non_ingested_granules
+    logger.info("{} granules ingested out of {} between the years {} to {}".format(granules_ingested, total_granules, start_year, end_year))
+    mp_csv.close()
 
 def gen_temporal_str(starttime, endtime):
     '''generates the temporal string for the cmr query'''
