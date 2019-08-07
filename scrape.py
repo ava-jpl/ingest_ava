@@ -80,9 +80,17 @@ def main():
                 non_ingested_granules += 1
             else:
                 cmr_url = CMR_URL.format(granule_ur)
-                response = requests.get(cmr_url, timeout=10)
-                response.raise_for_status()
-                logger.info("CMR URL: {} returned status code: {}".format(cmr_url, response.status_code))
+                attempts = 0
+                # Attempt to access CMR
+                while attempts < 3:
+                    try:
+                        response = requests.get(cmr_url, timeout=60)
+                        response.raise_for_status()
+                        logger.info("CMR URL: {} returned status code: {}".format(cmr_url, response.status_code))
+                        break
+                    except requests.exceptions.ReadTimeout as e:
+                        attempts += 1
+                        print("CMR Timeout Error %d: %s" % (e.args[0], e.args[1]))
                 granule = json.loads(response.text)["feed"]["entry"][0]
                 granule['ava_url'] = product_url
                 granule['on_ava'] = True
