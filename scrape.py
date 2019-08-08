@@ -57,6 +57,7 @@ def main():
 
     # Iterate from start_year to end_year
     total_granules=0
+    ingested_granules=0
     non_ingested_granules=0
     for year in range(start_year, (end_year+1)):
         #query the ava
@@ -80,8 +81,8 @@ def main():
                 non_ingested_granules += 1
             else:
                 cmr_url = CMR_URL.format(granule_ur)
-                attempts = 0
                 # Attempt to access CMR
+                attempts = 0
                 while attempts < 3:
                     try:
                         response = requests.get(cmr_url, timeout=60)
@@ -102,9 +103,11 @@ def main():
                     continue
                 #save_product_met(uid, ds, met)
                 ingest_product(uid, ds, met)
+                ingested_granules += 1
+                logger.info("{} of {} granules ingested".format(ingested_granules, total_granules))
     # Calculate number of granules ingested
-    granules_ingested = total_granules - non_ingested_granules
-    logger.info("{} granules ingested out of {} between the years {} to {}".format(granules_ingested, total_granules, start_year, end_year))
+    logger.info("{} granules ingested out of {} between the years {} to {}".format(ingested_granules, total_granules, start_year, end_year))
+    logger.info("{} granules NOT ingested out of {} between the years {} to {}".format(non_ingested_granules, total_granules, start_year, end_year))
     mp_csv.close()
 
 def gen_temporal_str(starttime, endtime):
