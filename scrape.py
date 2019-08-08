@@ -68,13 +68,15 @@ def main():
         response = requests.get(ava_url, timeout=450, verify=False)
         response.raise_for_status()
         ava_gran_dct = json.loads(response.text)
-        logger.info('AVA returned {} items.'.format(len(ava_gran_dct.keys())))
-        print('AVA returned {} items.'.format(len(ava_gran_dct.keys())))
-        total_granules += len(ava_gran_dct.items())
+        logger.info('AVA returned {} items.'.format(len(ava_gran_dct)))
+        print('AVA returned {} items.'.format(len(ava_gran_dct)))
+        total_granules += len(ava_gran_dct)
 
         #for each item, see if it's been ingested. if it has query the CMR and get the metadata
-        for granule_ur, product_url in ava_gran_dct.items():
-            if granule_ur == '': # If LP_DAAC ID is None, log missing product
+        for row in ava_gran_dct:
+            granule_ur = row['id']
+            product_url = row['path']
+            if not granule_ur: # If LP_DAAC ID is None, log missing product
                 product = product_url.split('/')[-1]
                 logger.error("Missing LP DAAC ID for : {}".format(product_url))
                 mp_writer.writerows([{"missing_lp_daac_id_products": product, "ava_product_url": product_url}])
@@ -91,7 +93,7 @@ def main():
                         break
                     except requests.exceptions.ReadTimeout as e:
                         attempts += 1
-                        print("CMR Timeout Error %d: %s" % (e.args[0], e.args[1]))
+                        print("CMR Timeout Error: %s" % e)
                 granule = json.loads(response.text)["feed"]["entry"][0]
                 granule['ava_url'] = product_url
                 granule['on_ava'] = True
