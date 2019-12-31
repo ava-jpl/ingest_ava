@@ -94,19 +94,23 @@ def main():
                     except requests.exceptions.ReadTimeout as e:
                         attempts += 1
                         print("CMR Timeout Error: %s" % e)
-                granule = json.loads(response.text)["feed"]["entry"][0]
-                granule['ava_url'] = product_url
-                granule['on_ava'] = True
-                granule['short_name'] = shortname
-                ds, met = gen_product(granule, shortname)
-                uid = ds.get('label')
-                logger.info('ingesting: {}'.format(uid))
-                if exists(uid, shortname):
-                    continue
-                #save_product_met(uid, ds, met)
-                ingest_product(uid, ds, met)
-                ingested_granules += 1
-                logger.info("{} of {} granules ingested".format(ingested_granules, total_granules))
+                try:
+                    granule = json.loads(response.text)["feed"]["entry"][0]
+                    granule['ava_url'] = product_url
+                    granule['on_ava'] = True
+                    granule['short_name'] = shortname
+                    ds, met = gen_product(granule, shortname)
+                    uid = ds.get('label')
+                    logger.info('ingesting: {}'.format(uid))
+                    if exists(uid, shortname):
+                        continue
+                    #save_product_met(uid, ds, met)
+                    ingest_product(uid, ds, met)
+                    ingested_granules += 1
+                    logger.info("{} of {} granules ingested".format(ingested_granules, total_granules))
+                except IndexError:
+                    logger.error("Missing CMR data for : {}".format(cmr_url))
+                    non_ingested_granules += 1
     # Calculate number of granules ingested
     logger.info("{} granules ingested out of {} between the years {} to {}".format(ingested_granules, total_granules, start_year, end_year))
     logger.info("{} granules NOT ingested out of {} between the years {} to {}".format(non_ingested_granules, total_granules, start_year, end_year))
