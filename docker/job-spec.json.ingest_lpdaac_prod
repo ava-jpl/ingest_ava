@@ -1,0 +1,22 @@
+{
+  "command": "/home/ops/verdi/ops/ingest_ava/ingest_from_lpdaac.py",
+  "imported_worker_files": {
+    "/home/ops/.netrc": "/home/ops/.netrc",
+    "/home/ops/.aws": "/home/ops/.aws",
+    "/home/ops/.wgetrc": "/home/ops/.wgetrc"
+  },
+  "disk_usage": "10GB",
+  "recommended-queues": [
+    "factotum-job_worker-large",
+    "ava-job_worker-large",
+    "ava-job_worker-small"
+  ],
+  "soft_time_limit": 2000,
+  "time_limit": 2800,
+  "params": [
+    {
+      "name": "lpdaac_download_url",
+      "destination": "context"
+    }
+  ]
+}
