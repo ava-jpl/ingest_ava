@@ -1,7 +1,7 @@
 {
   "label": "Ingest - AVA Product from LPDDAC",
-  "submission_type": "iteration",
-  "enable_dedup": false,
+  "submission_type": "individual",
+  "enable_dedup": true,
   "params": [
     {
       "name": "lpdaac_download_url",
