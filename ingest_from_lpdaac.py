@@ -151,7 +151,7 @@ def localize(url):
     wd = os.getcwd()
     granule_download_dir = os.path.join(wd, "Downloads")
     status = os.system(
-        'wget wget -r -np -nd {} -P {}'.format(url, granule_download_dir))
+        'wget -r -np -nd -A .met {} -P {}'.format(url, granule_download_dir))
     if status == 0:
         # succeeds
         if os.path.exists(granule_download_dir):
