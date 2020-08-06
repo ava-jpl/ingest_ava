@@ -32,8 +32,8 @@ def main():
     print("lpdaac_download_url: {}".format(lpdaac_download_url))
 
     # download granules from lpdaac_download_url
-    granule_download_dir = localize(lpdaac_download_url)
-    print("granule_download_dir: {}".fomrat(granule_download_dir))
+    granule_download_dir = localize_granules(lpdaac_download_url)
+    print("granule_download_dir: {}".format(granule_download_dir))
 
     # get list of granules from lpdaac_download_url
     granule_ids = list_granules(granule_download_dir)
@@ -52,39 +52,42 @@ def main():
             idx = INDEX_METADATA.format(VERSION, short_name.lower())
             if exists(idx, version_acquisition_date, short_name):
                 metadata = query_es_metdata(idx, version_acquisition_date, short_name)
-                print(metadata)
-
-    # If metdata exists:
-    # generate product id
-    # save hdf file to S3
-    # Add S3 url of hdf file as metadata.ava_url
-    # generate product
-    # save the metadata files
-
-
-def ingest_product(shortname, starttime, endtime, location, metadata):
-    '''determines if the product is localized. if not localizes and ingests the product'''
-    # generate product id
-    prod_id = gen_prod_id(shortname, starttime, endtime)
-    # determine if product exists on grq
-    if exists(prod_id, shortname):
-        print('product with id: {} already exists. Exiting.'.format(prod_id))
-        return
-    # attempt to localize product
-    print('attempting to localize product: {}'.format(prod_id))
-    localize_product(prod_id, metadata)
-    # generate product
-    dst, met = gen_jsons(prod_id, starttime, endtime, location, metadata)
-    # save the metadata files
-    save_product_met(prod_id, dst, met)
+                # generate product id
+                metadata_id = metadata['_id']
+                prod_id = gen_prod_id(metadata_id)
+                # attempt to localize product
+                hdf_items = id.split('.')
+                granule_hdf = "{}.{}".format(hdf_items[0], hdf_items[1])
+                localize_product(lpdaac_download_url, granule_hdf, prod_id, metadata)
+                # generate product
+                dst, met = gen_jsons(prod_id, metadata)
+                # save the metadata files
+                save_product_met(prod_id, dst, met)
 
 
-def gen_prod_id(shortname, starttime, endtime):
+# def ingest_product(shortname, starttime, endtime, location, metadata):
+#     '''determines if the product is localized. if not localizes and ingests the product'''
+#     # generate product id
+#     prod_id = gen_prod_id(shortname, starttime, endtime)
+#     # determine if product exists on grq
+#     if exists(prod_id, shortname):
+#         print('product with id: {} already exists. Exiting.'.format(prod_id))
+#         return
+#     # attempt to localize product
+#     print('attempting to localize product: {}'.format(prod_id))
+#     localize_product(prod_id, metadata)
+#     # generate product
+#     dst, met = gen_jsons(prod_id, starttime, endtime, location, metadata)
+#     # save the metadata files
+#     save_product_met(prod_id, dst, met)
+
+
+def gen_prod_id(id):
     '''generates the product id from the input metadata & params'''
-    start = dateutil.parser.parse(starttime).strftime('%Y%m%dT%H%M%S')
-    end = dateutil.parser.parse(endtime).strftime('%Y%m%dT%H%M%S')
-    time_str = '{}_{}'.format(start, end)
-    return PROD.format(shortname, time_str, VERSION)
+    id_items = id.split('-')
+    short_name = id_items[1]
+    start_end = id_items[2]
+    return PROD.format(short_name, start_end, VERSION)
 
 
 def exists(idx, uid, short_name):
@@ -124,33 +127,39 @@ def query_es_metdata(idx, uid, short_name):
         # if there is an error (or 404,just publish
         return 0
     results = json.loads(response.text, encoding='ascii')
-    return results
+    results_list = results.get('hits', {}).get('hits', [])
+    return results_list[0]
 
 
-def localize_product(prod_id, metadata):
+def localize_product(lpdaac_download_url, granule_hdf, prod_id, metadata):
     '''attempts to localize the product'''
     if not os.path.exists(prod_id):
         os.mkdir(prod_id)
     ava_url = metadata.get('ava_url', False)
     if ava_url is False:
-        raise Exception(
-            'cannot localize product. metadata.ava_url parameter is empty')
-    prod_path = os.path.join(prod_id, '{}.{}'.format(prod_id, 'hdf'))
-    localize(ava_url, prod_path)
+        # get granule hdf from lpdaac url
+        ava_url = "{}{}".format(lpdaac_download_url, granule_hdf)
+        prod_path = os.path.join(prod_id, granule_hdf)
+        localize_file(ava_url, prod_path)
+    else:
+        # get granule hdf from ava
+        prod_path = os.path.join(prod_id, '{}.{}'.format(prod_id, 'hdf'))
+        localize_file(ava_url, prod_path)
     for obj in metadata.get('links', []):
+        # localize links from extensions
         url = obj.get('href', False)
         extension = os.path.splitext(url)[1].strip('.')
         if extension in ALLOWED_EXTENSIONS:
             product_path = os.path.join(
                 prod_id, '{}.{}'.format(prod_id, extension))
             if not os.path.exists(product_path):
-                localize(url, product_path)
+                localize_file(url, product_path)
         if extension in ['jpg', 'jpeg', 'png']:
             # attempt to generate browse
             generate_browse(product_path, prod_id)
 
 
-def localize(url):
+def localize_granules(url):
     '''attempts to localize the product'''
     wd = os.getcwd()
     granule_download_dir = os.path.join(wd, "Downloads")
@@ -162,8 +171,21 @@ def localize(url):
     if status == 0:
         # succeeds
         if os.path.exists(granule_download_dir):
+            print("localized products from url: {} to {}".format(url, granule_download_dir))
             return granule_download_dir
-    raise Exception("unable to localize products from url: {}".format(url))
+    raise Exception("unable to localize products from url: {} to {}".format(url, granule_download_dir))
+
+def localize_file(url, prod_path):
+    '''attempts to localize the product'''
+    cmd  = ['wget', '--no-check-certificate', '-O', prod_path, url]
+    status = subprocess.call(cmd)
+    # status = os.system('wget --no-check-certificate -O {} {}'.format(prod_path, url))
+    if status == 0:
+        #succeeds
+        if os.path.exists(prod_path):
+            print("localized products from url: {} to {}".format(url, prod_path))
+            return
+    raise Exception("unable to localize products from url: {} to {}".format(url, prod_path))
 
 
 def list_granules(granule_download_dir):
@@ -193,8 +215,12 @@ def generate_browse(product_path, prod_id):
     os.remove(product_path)
 
 
-def gen_jsons(prod_id, starttime, endtime, location, metadata):
+def gen_jsons(prod_id, metadata):
     '''generates ds and met json blobs'''
+    starttime = metadata.get("starttime", False)
+    endtime = metadata.get("endtime", False)
+    location = metadata.get("location", False)
+    shortname = metadata.get('short_name')
     ds = {"label": prod_id, "starttime": starttime,
           "endtime": endtime, "location": location, "version": VERSION}
     met = metadata
