@@ -8,6 +8,7 @@ from __future__ import print_function
 import os
 import glob
 import json
+import subprocess
 import urllib3
 import dateutil.parser
 import requests
@@ -19,8 +20,8 @@ VERSION = "v1.0"
 ALLOWED_EXTENSIONS = ['tif', 'jpg', 'jpeg', 'png']
 # determined globals
 PROD = "{}-{}-{}"  # eg: AST_L1T-20190514T341405_20190514T341435-v1.0
-INDEX = 'grq_{}_{}' # e.g. grq_v1.0_ast_09t
-INDEX_METADATA = 'grq_{}_metadata-{}' # e.g. grq_v1.0_metadata-ast_09t
+INDEX = 'grq_{}_{}'  # e.g. grq_v1.0_ast_09t
+INDEX_METADATA = 'grq_{}_metadata-{}'  # e.g. grq_v1.0_metadata-ast_09t
 
 
 def main():
@@ -28,12 +29,15 @@ def main():
     # load parameters
     ctx = load_context()
     lpdaac_download_url = ctx.get("lpdaac_download_url", False)
+    print("lpdaac_download_url: {}".format(lpdaac_download_url))
 
     # download granules from lpdaac_download_url
     granule_download_dir = localize(lpdaac_download_url)
+    print("granule_download_dir: {}".fomrat(granule_download_dir))
 
     # get list of granules from lpdaac_download_url
     granule_ids = list_granules(granule_download_dir)
+    print("granule_ids: {}".format(granule_ids))
 
     # query metadata in AVA based on version, acquisition_date, and short_name
     for id in granule_ids:
@@ -42,7 +46,7 @@ def main():
         version_acquisition_date = id_items[2]
         idx = INDEX.format(VERSION, short_name.lower())
         if exists(idx, version_acquisition_date, short_name):
-            print("granule ID {} laready exists in AVA".format(id))
+            print("granule ID {} already exists in AVA".format(id))
             continue
         else:
             idx = INDEX_METADATA.format(VERSION, short_name.lower())
@@ -150,8 +154,11 @@ def localize(url):
     '''attempts to localize the product'''
     wd = os.getcwd()
     granule_download_dir = os.path.join(wd, "Downloads")
-    status = os.system(
-        'wget -r -np -nd -A .met {} -P {}'.format(url, granule_download_dir))
+    cmd = ['wget', '-r', '-np', '-nd', '-A',
+           '.met', url, '-P', granule_download_dir]
+    status = subprocess.call(cmd)
+    # status = os.system(
+    #     'wget -r -np -nd -A .met {} -P {}'.format(url, granule_download_dir))
     if status == 0:
         # succeeds
         if os.path.exists(granule_download_dir):
@@ -163,7 +170,7 @@ def list_granules(granule_download_dir):
     granule_ids = []
     try:
         for file in os.listdir(granule_download_dir):
-            if file.endswith(".hdf"):
+            if file.endswith(".hdf.met"):
                 granule_ids.append(file)
         return granule_ids
     except:
