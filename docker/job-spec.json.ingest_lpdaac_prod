@@ -11,8 +11,8 @@
     "ava-job_worker-large",
     "ava-job_worker-small"
   ],
-  "soft_time_limit": 2000,
-  "time_limit": 2800,
+  "soft_time_limit": 21600,
+  "time_limit": 22000,
   "params": [
     {
       "name": "lpdaac_download_url",
