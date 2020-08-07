@@ -51,16 +51,18 @@ def main():
         else:
             idx = INDEX_METADATA.format(VERSION, short_name.lower())
             if exists(idx, version_acquisition_date, short_name):
-                metadata = query_es_metdata(idx, version_acquisition_date, short_name)
+                granule_results = query_es_metdata(idx, version_acquisition_date, short_name)
                 # generate product id
-                metadata_id = metadata['_id']
-                prod_id = gen_prod_id(metadata_id)
+                granule_metadata_id = granule_results['_id']
+                prod_id = gen_prod_id(granule_metadata_id)
                 # attempt to localize product
                 hdf_items = id.split('.')
                 granule_hdf = "{}.{}".format(hdf_items[0], hdf_items[1])
+                metadata = granule_results.get("_source",False).get("metadata", False)
                 localize_product(lpdaac_download_url, granule_hdf, prod_id, metadata)
                 # generate product
-                dst, met = gen_jsons(prod_id, metadata)
+                granule_metadata_source = granule_results.get("_source",False)
+                dst, met = gen_jsons(prod_id, granule_metadata_source)
                 # save the metadata files
                 save_product_met(prod_id, dst, met)
 
@@ -217,13 +219,13 @@ def generate_browse(product_path, prod_id):
 
 def gen_jsons(prod_id, metadata):
     '''generates ds and met json blobs'''
-    starttime = metadata.get("starttime", False)
-    endtime = metadata.get("endtime", False)
-    location = metadata.get("location", False)
-    shortname = metadata.get('short_name')
+    starttime = metadata.get('starttime', False)
+    endtime = metadata.get('endtime', False)
+    location = metadata.get('location', False)
+    shortname = metadata.get('shortname', False)
     ds = {"label": prod_id, "starttime": starttime,
           "endtime": endtime, "location": location, "version": VERSION}
-    met = metadata
+    met = metadata.get('metadata', False)
     return ds, met
 
 
