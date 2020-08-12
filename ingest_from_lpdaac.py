@@ -139,6 +139,9 @@ def localize_product(lpdaac_download_url, granule_hdf, prod_id, metadata):
         os.mkdir(prod_id)
     ava_url = metadata.get('ava_url', False)
     if ava_url is False:
+        # check if lpdaac_download_url has a trailing "/" character
+        if lpdaac_download_url[:-1] != "/":
+            lpdaac_download_url = "{}{}".format(lpdaac_download_url,"/")
         # get granule hdf from lpdaac url
         ava_url = "{}{}".format(lpdaac_download_url, granule_hdf)
         prod_path = os.path.join(prod_id, granule_hdf)

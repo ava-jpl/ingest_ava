@@ -7,9 +7,7 @@
   },
   "disk_usage": "10GB",
   "recommended-queues": [
-    "factotum-job_worker-large",
-    "ava-job_worker-large",
-    "ava-job_worker-small"
+    "factotum-job_worker-small"
   ],
   "soft_time_limit": 21600,
   "time_limit": 22000,
