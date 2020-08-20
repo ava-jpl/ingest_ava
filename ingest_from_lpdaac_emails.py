@@ -60,7 +60,7 @@ def import_lpdaac_emails(args):
         ctx = load_context()
         directory = ctx.get("lpdaac_email_directory", False)
         # check if lpdaac_download_url has a trailing "/" character
-        if directory[:-1] != "/":
+        if directory[-1] != "/":
             directory = "{}{}".format(directory, "/")
         print("lpdaac_email_directory: {}".format(directory))
 
