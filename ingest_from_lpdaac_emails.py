@@ -135,7 +135,7 @@ def load_context():
 if __name__ == "__main__":
     # Gather arguements for script
     parser = argparse.ArgumentParser()
-    parser.add_argument("-d", "--dir", required=True,
+    parser.add_argument("-d", "--dir", required=False,
                         help="name of the directory containing LPDAAC emails")
     args = parser.parse_args()
 
