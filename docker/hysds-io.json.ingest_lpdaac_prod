@@ -1,5 +1,5 @@
 {
-  "label": "Ingest - AVA Product from LPDDAC",
+  "label": "Ingest - AVA Product from LPDAAC URL",
   "submission_type": "individual",
   "enable_dedup": true,
   "params": [

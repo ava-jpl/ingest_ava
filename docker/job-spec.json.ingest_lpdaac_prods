@@ -1,0 +1,20 @@
+{
+  "command": "/home/ops/verdi/ops/ingest_ava/ingest_from_lpdaac_emails.py",
+  "imported_worker_files": {
+    "/home/ops/.netrc": "/home/ops/.netrc",
+    "/home/ops/.aws": "/home/ops/.aws",
+    "/home/ops/.wgetrc": "/home/ops/.wgetrc"
+  },
+  "disk_usage": "10GB",
+  "recommended-queues": [
+    "factotum-job_worker-small"
+  ],
+  "soft_time_limit": 21600,
+  "time_limit": 22000,
+  "params": [
+    {
+      "name": "lpdaac_email_directory",
+      "destination": "context"
+    }
+  ]
+}
