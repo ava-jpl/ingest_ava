@@ -47,8 +47,8 @@ def main(args):
                 lpdaac_download_link = order[1]
                 logger.info("{}, {}".format(order_id, lpdaac_download_link))
                 tag = TAG.format(time.strftime('%Y%m%d'), order_id)
-                params = PARAMS['lpdaac_download_url'] = lpdaac_download_link
-                submit_job(JOB_NAME, params, JOB_VERSION, QUEUE, PRIORITY, tag)
+                PARAMS['lpdaac_download_url'] = lpdaac_download_link
+                submit_job(JOB_NAME, PARAMS, JOB_VERSION, QUEUE, PRIORITY, tag)
 
 
 def import_lpdaac_emails(args):
@@ -91,7 +91,7 @@ def import_lpdaac_emails(args):
 
 
 def scrape_emails(email_file_dir):
-    '''Extract Latitiude and Longitiude vectors from met file'''
+    '''Extract order IDs and Download Links from emails'''
     parsed_lines = []
     order_id = False
     download_link_index = False
