@@ -49,6 +49,7 @@ def main(args):
                 tag = TAG.format(time.strftime('%Y%m%d'), order_id)
                 PARAMS['lpdaac_download_url'] = lpdaac_download_link
                 submit_job(JOB_NAME, PARAMS, JOB_VERSION, QUEUE, PRIORITY, tag)
+                time.sleep(2)
 
 
 def import_lpdaac_emails(args):
@@ -120,7 +121,7 @@ def query_es(uid):
     idx = "job_status-current"
     mozart_url = '{0}/{1}/_search'.format(mozart_ip, idx)
     es_query = {"query": {"bool": {"must": [{"query_string": {"default_field": "_all", "query": uid}}], "must_not": [
-        {"query_string": {"default_field": "status", "query": "job-failed"}}], "should": []}}, "from": 0, "size": 10, "sort": [], "aggs": {}}
+    ], "should": []}}, "from": 0, "size": 10, "sort": [], "aggs": {}}
     print('querying: {} with {}'.format(mozart_url, es_query))
     response = requests.post(
         mozart_url, data=json.dumps(es_query), verify=False)
