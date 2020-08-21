@@ -4,9 +4,9 @@
   "enable_dedup": true,
   "params": [
     {
-      "name": "lpdaac_email_directory",
+      "name": "s3_lpdaac_email_bucket",
       "from": "submitter",
-      "default": "/home/ops/ava_lpdaac_emials/"
+      "default": "ava-lpdaac-emails"
     }
   ]
 }

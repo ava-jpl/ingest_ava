@@ -13,7 +13,7 @@
   "time_limit": 22000,
   "params": [
     {
-      "name": "lpdaac_email_directory",
+      "name": "s3_lpdaac_email_bucket",
       "destination": "context"
     }
   ]

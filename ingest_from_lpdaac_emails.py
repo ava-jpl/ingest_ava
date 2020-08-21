@@ -7,6 +7,8 @@ import json
 import argparse
 import requests
 import logging
+import boto3
+import zipfile
 from submit_job import main as submit_job
 from hysds.celery import app
 
@@ -27,6 +29,7 @@ PARAMS = {"lpdaac_download_url": ""}
 
 def main(args):
     '''Localizes and ingests product from input metadata blob'''
+
     # get list of all emails in directory
     emails = import_lpdaac_emails(args)
     # loop through the emails
@@ -55,16 +58,27 @@ def import_lpdaac_emails(args):
     # check for a given directory
     if (args.dir):
         directory = args.dir
-    else:
-        # load parameters
-        ctx = load_context()
-        directory = ctx.get("lpdaac_email_directory", False)
         # check if lpdaac_download_url has a trailing "/" character
         if directory[-1] != "/":
             directory = "{}{}".format(directory, "/")
         print("lpdaac_email_directory: {}".format(directory))
+    else:
+        # load parameters
+        ctx = load_context()
+        s3_bucket = ctx.get("s3_lpdaac_email_bucket", False)
+        if s3_bucket:
+            directory = download_files_from_s3(s3_bucket)
 
-    # from directory, return list of all emails
+    # check if there any zip files
+    files = os.listdir(directory)
+    for f in files:
+        if f.endswith('.zip'):
+            zip_file_path = os.path.join(directory, f)
+            with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
+                zip_ref.extractall(directory)
+            os.remove(zip_file_path)
+
+    # check if there any zip files
     files = os.listdir(directory)
     for f in files:
         email_file_path = os.path.join(directory, f)
@@ -119,6 +133,30 @@ def query_es(uid):
     #results_list = results.get('hits', {}).get('hits', [])
     total_count = results.get('hits', {}).get('total', 0)
     return int(total_count)
+
+
+def download_files_from_s3(s3_bucket):
+    '''download emails from s3 bucket'''
+    try:
+        # get work directory
+        wd = os.getcwd()
+        # create Downloads directory
+        ava_email_dir = os.path.join(wd, "Downloads")
+        os.mkdir(ava_email_dir)
+        os.chdir(ava_email_dir)
+        # initiate s3 resource
+        s3 = boto3.resource('s3')
+        # select bucket
+        ava_email_bucket = s3.Bucket(s3_bucket)
+        # download file into Downloads directory
+        for s3_object in ava_email_bucket.objects.all():
+            filename = s3_object.key
+            ava_email_bucket.download_file(s3_object.key, filename)
+        os.chdir(wd)
+        return ava_email_dir
+    except:
+        raise Exception(
+            'unable to download emails from S3 bucket: {}'.format(s3_bucket))
 
 
 def load_context():
