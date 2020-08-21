@@ -79,14 +79,14 @@ def import_lpdaac_emails(args):
             os.remove(zip_file_path)
 
     # check if there any zip files
-    files = os.listdir(directory)
-    for f in files:
-        email_file_path = os.path.join(directory, f)
-        if not os.path.isfile(email_file_path):
-            raise RuntimeError(
-                "Failed to find docs file {}".format(email_file_path))
-        else:
-            emails.append(email_file_path)
+    for root, dirs, files in os.walk(directory, topdown=True):
+        for f in files:
+            email_file_path = os.path.join(root, f)
+            if not os.path.isfile(email_file_path):
+                raise RuntimeError(
+                    "Failed to find docs file {}".format(email_file_path))
+            else:
+                emails.append(email_file_path)
     return emails
 
 
