@@ -17,8 +17,7 @@ def main(job_name, job_params, job_version, queue, priority, tags):
     submits a job to mozart to start pager job
     '''
     # submit mozart job
-    job_submit_url = os.path.join(
-        app.conf['MOZART_REST_URL'], '/job/submit')
+    job_submit_url = "{}{}".format(app.conf['MOZART_REST_URL'], '/job/submit')
     params = {
         'queue': queue,
         'priority': int(priority),
