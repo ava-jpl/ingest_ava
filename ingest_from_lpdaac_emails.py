@@ -93,7 +93,11 @@ def import_lpdaac_emails(args):
 
 def scrape_emails(email_file_dir):
     '''Extract order IDs and Download Links from emails'''
-    order_id, media_type, host, directory, download_link_index = False
+    order_id = False
+    media_type = False
+    host = False
+    directory = False
+    download_link_index = False
     try:
         with open(email_file_dir, encoding='utf-8',
                   errors='ignore') as f:
@@ -107,10 +111,13 @@ def scrape_emails(email_file_dir):
                     order_id = ''.join(list(filter(str.isdigit, line)))
                 if "MEDIATYPE:" in line:
                     media_type = line.lower().split(': ')[-1]
+                    media_type = media_type.rstrip()
                 if "HOST:" in line:
                     host = line.split(': ')[-1]
+                    host = host.rstrip()
                 if "DIR:" in line:
                     directory = line.split(': ')[-1]
+                    directory = directory.rstrip()
                 if media_type and host and directory:
                     download_link_index = "{}://{}{}".format(
                         media_type, host, directory)
