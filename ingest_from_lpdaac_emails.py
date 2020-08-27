@@ -131,8 +131,8 @@ def query_es(uid):
     mozart_ip = app.conf['JOBS_ES_URL']
     idx = "job_status-current"
     mozart_url = '{0}/{1}/_search'.format(mozart_ip, idx)
-    es_query = {"query": {"bool": {"must": [{"query_string": {"default_field": "_all", "query": uid}}], "must_not": [
-    ], "should": []}}, "from": 0, "size": 10, "sort": [], "aggs": {}}
+    es_query = {"query": {"bool": {"must": [{"query_string": {"default_field": "_all", "query": uid}}], "must_not": [{"query_string": {"default_field": "status", "query": "job-failed"}}
+                                                                                                                     ], "should": []}}, "from": 0, "size": 10, "sort": [], "aggs": {}}
     print('querying: {} with {}'.format(mozart_url, es_query))
     response = requests.post(
         mozart_url, data=json.dumps(es_query), verify=False)
