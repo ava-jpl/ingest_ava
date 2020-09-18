@@ -11,6 +11,8 @@ import boto3
 import zipfile
 from submit_job import main as submit_job
 from hysds.celery import app
+from email import policy
+from email.parser import BytesParser
 
 # create order_granule.log
 LOG_FILE_NAME = 'ingest_from_lpdaac_emails.log'
@@ -91,7 +93,7 @@ def import_lpdaac_emails(args):
     return emails
 
 
-def scrape_emails(email_file_dir):
+def scrape_emails(email_file):
     '''Extract order IDs and Download Links from emails'''
     order_id = False
     media_type = False
@@ -99,7 +101,19 @@ def scrape_emails(email_file_dir):
     directory = False
     download_link_index = False
     try:
-        with open(email_file_dir, encoding='utf-8',
+        if email_file.endswith('.eml'):
+            wd = os.getcwd()
+            tmp_file_path = os.path.join(wd, "tmp.txt")
+            print("file ends with .eml: {}".format(email_file))
+            with open(email_file, 'rb') as f:  # select a specific email file from the list
+                msg = BytesParser(policy=policy.default).parse(f)
+                text = msg.get_body(preferencelist=('plain')).get_content()
+                tmp_file = open(tmp_file_path, "w")
+                tmp_file.write(text)
+                tmp_file.close()
+            f.close()
+            email_file = tmp_file_path
+        with open(email_file, encoding='utf-8',
                   errors='ignore') as f:
             for i, line in enumerate(f):
                 if order_id and download_link_index:  # if order_id and download_link_index are true, exit function
@@ -123,7 +137,7 @@ def scrape_emails(email_file_dir):
                         media_type, host, directory)
     except:
         print("could not find ORDERID and Download Links in email: {}".format(
-            email_file_dir))
+            email_file))
 
 
 def query_es(uid):
