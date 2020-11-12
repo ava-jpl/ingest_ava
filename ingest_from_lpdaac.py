@@ -47,27 +47,83 @@ def main():
         id_items = id.split('_')
         short_name = "{}_{}".format(id_items[0], id_items[1])
         version_acquisition_date = id_items[2]
+
+        # check AST_L1B or AST_09T index
         idx = INDEX.format(VERSION, short_name.lower())
         if exists(idx, version_acquisition_date, short_name):
-            print("granule ID {} already exists in AVA".format(id))
+            print("granule ID {} already exists in AVA for version_acquisition_date {}".format(id, version_acquisition_date))
             continue
         else:
-            idx = INDEX_METADATA.format(VERSION, short_name.lower())
-            if exists(idx, version_acquisition_date, short_name):
-                granule_results = query_es_metdata(idx, version_acquisition_date, short_name)
-                # generate product id
-                granule_metadata_id = granule_results['_id']
-                prod_id = gen_prod_id(granule_metadata_id)
-                # attempt to localize product
-                hdf_items = id.split('.')
-                granule_hdf = "{}.{}".format(hdf_items[0], hdf_items[1])
-                metadata = granule_results.get("_source",False).get("metadata", False)
-                localize_product(lpdaac_download_url, granule_hdf, prod_id, metadata)
-                # generate product
-                granule_metadata_source = granule_results.get("_source",False)
-                dst, met = gen_jsons(prod_id, granule_metadata_source)
-                # save the metadata files
-                save_product_met(prod_id, dst, met)
+            version_acquisition_date_underscore = version_acquisition_date[0:3] + "_" + version_acquisition_date[3:]
+            if exists(idx, version_acquisition_date_underscore, short_name):
+                print("granule ID {} already exists in AVA for version_acquisition_date {}".format(id, version_acquisition_date_underscore))
+                continue
+            else:
+
+                # check metadata index 
+                idx = INDEX_METADATA.format(VERSION, short_name.lower()) 
+                metadata_found = exists(idx, version_acquisition_date, short_name)
+                if metadata_found:
+                    granule_results = query_es_metdata(idx, version_acquisition_date, short_name)
+                    # generate product id
+                    granule_metadata_id = granule_results['_id']
+                    prod_id = gen_prod_id(granule_metadata_id)
+                    # attempt to localize product
+                    hdf_items = id.split('.')
+                    granule_hdf = "{}.{}".format(hdf_items[0], hdf_items[1])
+                    metadata = granule_results.get("_source",False).get("metadata", False)
+                    localize_product(lpdaac_download_url, granule_hdf, prod_id, metadata)
+                    # generate product
+                    granule_metadata_source = granule_results.get("_source",False)
+                    dst, met = gen_jsons(prod_id, granule_metadata_source)
+                    # save the metadata files
+                    save_product_met(prod_id, dst, met)
+                elif not metadata_found:
+                    metadata_found = exists(idx, version_acquisition_date_underscore, short_name)
+                    if metadata_found:
+                        granule_results = query_es_metdata(idx, version_acquisition_date_underscore, short_name)
+                        # generate product id
+                        granule_metadata_id = granule_results['_id']
+                        prod_id = gen_prod_id(granule_metadata_id)
+                        # attempt to localize product
+                        hdf_items = id.split('.')
+                        granule_hdf = "{}.{}".format(hdf_items[0], hdf_items[1])
+                        metadata = granule_results.get("_source",False).get("metadata", False)
+                        localize_product(lpdaac_download_url, granule_hdf, prod_id, metadata)
+                        # generate product
+                        granule_metadata_source = granule_results.get("_source",False)
+                        dst, met = gen_jsons(prod_id, granule_metadata_source)
+                        # save the metadata files
+                        save_product_met(prod_id, dst, met)
+                    else:
+                        print("Could not find metadata for granule ID {} in AVA using version_acquisition_date_underscore {}".format(id, version_acquisition_date_underscore))
+                        continue
+                else:
+                    print("Could not find metadata for granule ID {} in AVA using version_acquisition_date {}".format(id, version_acquisition_date))
+                    continue
+
+
+
+        # if exists(idx, version_acquisition_date, short_name):
+        #     print("granule ID {} already exists in AVA".format(id))
+        #     continue
+        # else:
+        #     idx = INDEX_METADATA.format(VERSION, short_name.lower())
+        #     if exists(idx, version_acquisition_date, short_name):
+        #         granule_results = query_es_metdata(idx, version_acquisition_date, short_name)
+        #         # generate product id
+        #         granule_metadata_id = granule_results['_id']
+        #         prod_id = gen_prod_id(granule_metadata_id)
+        #         # attempt to localize product
+        #         hdf_items = id.split('.')
+        #         granule_hdf = "{}.{}".format(hdf_items[0], hdf_items[1])
+        #         metadata = granule_results.get("_source",False).get("metadata", False)
+        #         localize_product(lpdaac_download_url, granule_hdf, prod_id, metadata)
+        #         # generate product
+        #         granule_metadata_source = granule_results.get("_source",False)
+        #         dst, met = gen_jsons(prod_id, granule_metadata_source)
+        #         # save the metadata files
+        #         save_product_met(prod_id, dst, met)
 
 
 # def ingest_product(shortname, starttime, endtime, location, metadata):
@@ -99,9 +155,11 @@ def exists(idx, uid, short_name):
     '''queries grq to see if the input id exists. Returns True if it does, False if not'''
     # idx = INDEX.format(VERSION, short_name.lower())
     # .replace(':9200', '').replace('http://', 'https://')
+    uid = "*"+uid+"*"
     grq_ip = app.conf['GRQ_ES_URL']
     grq_url = '{0}/{1}/_search'.format(grq_ip, idx)
-    es_query = {"query":{"bool":{"must":[{"query_string":{"default_field":"_all","query":uid}},{"query_string":{"default_field":"metadata.short_name.raw","query":short_name}}],"must_not":[],"should":[]}},"from":0,"size":1,"sort":[],"aggs":{}}
+    # es_query = {"query":{"bool":{"must":[{"query_string":{"default_field":"_all","query":uid}},{"query_string":{"default_field":"metadata.short_name.raw","query":short_name}}],"must_not":[],"should":[]}},"from":0,"size":1,"sort":[],"aggs":{}}
+    es_query = {"query":{"bool":{"must":[{"wildcard":{"metadata.producer_granule_id.raw":uid}},{"query_string":{"default_field":"metadata.short_name.raw","query":short_name}}],"must_not":[],"should":[]}},"from":0,"size":1,"sort":[],"aggs":{}}
     return query_es(grq_url, es_query)
 
 
@@ -121,9 +179,11 @@ def query_es(grq_url, es_query):
 
 def query_es_metdata(idx, uid, short_name):
     '''simple single elasticsearch query, used for existence. returns count of result.'''
+    uid = "*"+uid+"*"
     grq_ip = app.conf['GRQ_ES_URL']
     grq_url = '{0}/{1}/_search'.format(grq_ip, idx)
-    es_query = {"query":{"bool":{"must":[{"query_string":{"default_field":"_all","query":uid}},{"query_string":{"default_field":"metadata.short_name.raw","query":short_name}}],"must_not":[],"should":[]}},"from":0,"size":1,"sort":[],"aggs":{}}
+    # es_query = {"query":{"bool":{"must":[{"query_string":{"default_field":"_all","query":uid}},{"query_string":{"default_field":"metadata.short_name.raw","query":short_name}}],"must_not":[],"should":[]}},"from":0,"size":1,"sort":[],"aggs":{}}
+    es_query = {"query":{"bool":{"must":[{"wildcard":{"metadata.producer_granule_id.raw":uid}},{"query_string":{"default_field":"metadata.short_name.raw","query":short_name}}],"must_not":[],"should":[]}},"from":0,"size":1,"sort":[],"aggs":{}}
     print('querying: {} with {}'.format(grq_url, es_query))
     response = requests.post(grq_url, data=json.dumps(es_query), verify=False)
     try:
