@@ -101,18 +101,17 @@ def scrape_emails(email_file):
     directory = False
     download_link_index = False
     try:
-        if email_file.endswith('.eml'):
-            wd = os.getcwd()
-            tmp_file_path = os.path.join(wd, "tmp.txt")
-            print("file ends with .eml: {}".format(email_file))
-            with open(email_file, 'rb') as f:  # select a specific email file from the list
-                msg = BytesParser(policy=policy.default).parse(f)
-                text = msg.get_body(preferencelist=('plain')).get_content()
-                tmp_file = open(tmp_file_path, "w")
-                tmp_file.write(text)
-                tmp_file.close()
-            f.close()
-            email_file = tmp_file_path
+        wd = os.getcwd()
+        tmp_file_path = os.path.join(wd, "tmp.txt")
+        print("file ends with .eml: {}".format(email_file))
+        with open(email_file, 'rb') as f:  # select a specific email file from the list
+            msg = BytesParser(policy=policy.default).parse(f)
+            text = msg.get_body(preferencelist=('plain')).get_content()
+            tmp_file = open(tmp_file_path, "w")
+            tmp_file.write(text)
+            tmp_file.close()
+        f.close()
+        email_file = tmp_file_path
         with open(email_file, encoding='utf-8',
                   errors='ignore') as f:
             for i, line in enumerate(f):
