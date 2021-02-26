@@ -56,14 +56,14 @@ def parse_job_tags(tag_string):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('-j', '--job_name', help='Job name',
-                        dest='job_name', required=True, default="job-ingest_lpdaac_prods:dev")
+                        dest='job_name', required=False, default="job-ingest_lpdaac_prods")
     parser.add_argument(
-        '-p', '--params', help='Input params dict', dest='params', required=True, default={"s3_lpdaac_email_bucket": "ava-ses-emails"})
+        '-p', '--params', help='Input params dict', dest='params', required=False, default={"s3_lpdaac_email_bucket": "ava-ses-emails"})
     parser.add_argument('-v', '--version', help='release version, eg "master" or "release-20180615"',
                         dest='version', required=False, default='dev')
     parser.add_argument('-q', '--queue', help='Job queue', dest='queue',
                         required=False, default='factotum-job_worker-small')
-    parser.add_argument('-p', '--priority', help='Job priority',
+    parser.add_argument('-pr', '--priority', help='Job priority',
                         dest='priority', required=False, default='5')
     parser.add_argument('-g', '--tags', help='Job tags. Use a comma separated list for more than one',
                         dest='tags', required=False, default='automated-granule-ingest')
