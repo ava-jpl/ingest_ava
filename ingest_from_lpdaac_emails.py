@@ -28,6 +28,8 @@ PRIORITY = 5
 TAG = "{}-ingest_from_lpdaac-id-{}"
 PARAMS = {"lpdaac_download_url": ""}
 
+# aws profile
+boto3.setup_default_session("saml-pub")
 
 def main(args):
     '''Localizes and ingests product from input metadata blob'''
