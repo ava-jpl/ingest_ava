@@ -172,7 +172,8 @@ def query_es(grq_url, es_query):
     except:
         # if there is an error (or 404,just publish
         return 0
-    results = json.loads(response.text, encoding='ascii')
+    text = response.text.encode('ascii')
+    results = json.loads(text)
     #results_list = results.get('hits', {}).get('hits', [])
     total_count = results.get('hits', {}).get('total', 0)
     return int(total_count)
@@ -191,7 +192,8 @@ def query_es_metdata(idx, uid, short_name):
     except:
         # if there is an error (or 404,just publish
         return 0
-    results = json.loads(response.text, encoding='ascii')
+    text = response.text.encode('ascii')
+    results = json.loads(text)
     results_list = results.get('hits', {}).get('hits', [])
     return results_list[0]
 
