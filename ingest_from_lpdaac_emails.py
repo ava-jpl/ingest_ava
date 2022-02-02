@@ -83,7 +83,7 @@ def import_lpdaac_emails(args):
                 zip_ref.extractall(directory)
             os.remove(zip_file_path)
 
-    # check if there any zip files
+    # create paths to emails
     for root, dirs, files in os.walk(directory, topdown=True):
         for f in files:
             email_file_path = os.path.join(root, f)
@@ -156,7 +156,8 @@ def query_es(uid):
     except:
         # if there is an error (or 404,just publish
         return 0
-    results = json.loads(response.text, encoding='ascii')
+    text = response.text.encode('ascii')
+    results = json.loads(text)
     #results_list = results.get('hits', {}).get('hits', [])
     total_count = results.get('hits', {}).get('total', 0)
     return int(total_count)
