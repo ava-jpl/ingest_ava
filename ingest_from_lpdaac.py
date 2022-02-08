@@ -148,7 +148,9 @@ def gen_prod_id(id):
     id_items = id.split('-')
     short_name = id_items[1]
     start_end = id_items[2]
-    return PROD.format(short_name, start_end, VERSION)
+    PROD_ID = PROD.format(short_name, start_end, VERSION)
+    print("PROD_ID: {}".format(PROD_ID))
+    return PROD_ID
 
 
 def exists(idx, uid, short_name):
@@ -202,6 +204,7 @@ def localize_product(lpdaac_download_url, granule_hdf, prod_id, metadata):
     '''attempts to localize the product'''
     if not os.path.exists(prod_id):
         os.mkdir(prod_id)
+        print("Created directory: {}".format(prod_id))
     ava_url = metadata.get('ava_url', False)
     if ava_url is False:
         # get granule hdf from lpdaac url
@@ -298,6 +301,7 @@ def save_product_met(prod_id, ds_obj, met_obj):
     '''generates the appropriate product json files in the product directory'''
     if not os.path.exists(prod_id):
         os.mkdir(prod_id)
+        print("Created directory: {}".format(prod_id))
     outpath = os.path.join(prod_id, '{}.dataset.json'.format(prod_id))
     with open(outpath, 'w') as outf:
         json.dump(ds_obj, outf)
