@@ -5,7 +5,7 @@
     "/home/ops/.aws": "/home/ops/.aws",
     "/home/ops/.wgetrc": "/home/ops/.wgetrc"
   },
-  "disk_usage": "100GB",
+  "disk_usage": "5GB",
   "recommended-queues": [
     "factotum-job_worker-small"
   ],
