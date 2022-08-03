@@ -231,30 +231,40 @@ def localize_product(lpdaac_download_url, granule_hdf, prod_id, metadata):
 
 def localize_granules(url):
     '''attempts to localize the product'''
+    max_turns = 5
+    turn = 0
     wd = os.getcwd()
     granule_download_dir = os.path.join(wd, "Downloads")
     cmd = ['wget', '-r', '-np', '-nd', '-A',
            '.met', url, '-P', granule_download_dir]
-    status = subprocess.call(cmd)
-    # status = os.system(
-    #     'wget -r -np -nd -A .met {} -P {}'.format(url, granule_download_dir))
-    if status == 0:
-        # succeeds
-        if os.path.exists(granule_download_dir):
-            print("localized products from url: {} to {}".format(url, granule_download_dir))
-            return granule_download_dir
+    while turn < max_turns:
+        status = subprocess.call(cmd)
+        # status = os.system(
+        #     'wget -r -np -nd -A .met {} -P {}'.format(url, granule_download_dir))
+        if status == 0:
+            # succeeds
+            if os.path.exists(granule_download_dir):
+                print("localized products from url: {} to {}".format(url, granule_download_dir))
+                return granule_download_dir
+        else:
+            turn = turn + 1
     raise Exception("unable to localize products from url: {} to {}".format(url, granule_download_dir))
 
 def localize_file(url, prod_path):
     '''attempts to localize the product'''
+    max_turns = 5
+    turn = 0
     cmd  = ['wget', '--no-check-certificate', '-O', prod_path, url]
-    status = subprocess.call(cmd)
-    # status = os.system('wget --no-check-certificate -O {} {}'.format(prod_path, url))
-    if status == 0:
-        #succeeds
-        if os.path.exists(prod_path):
-            print("localized products from url: {} to {}".format(url, prod_path))
-            return
+    while turn < max_turns:
+        status = subprocess.call(cmd)
+        # status = os.system('wget --no-check-certificate -O {} {}'.format(prod_path, url))
+        if status == 0:
+            #succeeds
+            if os.path.exists(prod_path):
+                print("localized products from url: {} to {}".format(url, prod_path))
+                return
+        else:
+            turn = turn + 1
     raise Exception("unable to localize products from url: {} to {}".format(url, prod_path))
 
 
