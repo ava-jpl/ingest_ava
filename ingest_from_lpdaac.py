@@ -231,7 +231,7 @@ def localize_product(lpdaac_download_url, granule_hdf, prod_id, metadata):
 
 def localize_granules(url):
     '''attempts to localize the product'''
-    max_turns = 5
+    max_turns = 10
     turn = 0
     wd = os.getcwd()
     granule_download_dir = os.path.join(wd, "Downloads")
@@ -252,7 +252,7 @@ def localize_granules(url):
 
 def localize_file(url, prod_path):
     '''attempts to localize the product'''
-    max_turns = 5
+    max_turns = 10
     turn = 0
     cmd  = ['wget', '--no-check-certificate', '-O', prod_path, url]
     while turn < max_turns:
