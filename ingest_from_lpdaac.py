@@ -222,12 +222,12 @@ def localize_product(lpdaac_download_url, granule_hdf, prod_id, metadata):
         sensor = url.split(".")[-2]
         extension = url.split(".")[-1]
         if extension in ALLOWED_EXTENSIONS and sensor == "VNIR":
-            product_path = os.path.join(
-                prod_id, '{}.{}'.format(prod_id, extension))
+            product_path = os.path.join(prod_id, '{}.{}'.format(prod_id, extension))
             if not os.path.exists(product_path):
                 localize_file(url, product_path)
         if extension in ['jpg', 'jpeg', 'png']:
             # attempt to generate browse
+            product_path = os.path.join(prod_id, '{}.{}'.format(prod_id, extension))
             generate_browse(product_path, prod_id)
 
 
