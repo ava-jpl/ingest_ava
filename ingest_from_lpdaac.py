@@ -218,16 +218,13 @@ def localize_product(lpdaac_download_url, granule_hdf, prod_id, metadata):
     for obj in metadata.get('links', []):
         # localize links from extensions
         url = obj.get('href', False)
-        # extension = os.path.splitext(url)[1].strip('.')
-        sensor = url.split(".")[-2]
-        extension = url.split(".")[-1]
-        if extension in ALLOWED_EXTENSIONS and sensor == "VNIR":
+        extension = os.path.splitext(url)[1].strip('.')
+        if extension in ALLOWED_EXTENSIONS:
             product_path = os.path.join(prod_id, '{}.{}'.format(prod_id, extension))
             if not os.path.exists(product_path):
                 localize_file(url, product_path)
         if extension in ['jpg', 'jpeg', 'png']:
             # attempt to generate browse
-            product_path = os.path.join(prod_id, '{}.{}'.format(prod_id, extension))
             generate_browse(product_path, prod_id)
 
 
