@@ -22,7 +22,7 @@ logger = logging
 
 # ingest lpdaac prod job specs
 JOB_NAME = "job-ingest_lpdaac_prod"
-JOB_VERSION = "dev"
+JOB_VERSION = "master"
 QUEUE = "factotum-job_worker-small"
 PRIORITY = 5
 TAG = "{}-ingest_from_lpdaac-id-{}"
