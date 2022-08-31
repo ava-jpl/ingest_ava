@@ -1,0 +1,11 @@
+{
+  "label": "Ingest - AVA Product from LPDAAC URL",
+  "submission_type": "individual",
+  "enable_dedup": true,
+  "params": [
+    {
+      "name": "lpdaac_download_url",
+      "from": "submitter"
+    }
+  ]
+}

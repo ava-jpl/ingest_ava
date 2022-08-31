@@ -1,0 +1,12 @@
+{
+  "label": "Ingest - AVA Product from LPDAAC EMAILS",
+  "submission_type": "individual",
+  "enable_dedup": true,
+  "params": [
+    {
+      "name": "s3_lpdaac_email_bucket",
+      "from": "submitter",
+      "default": "ava-lpdaac-emails"
+    }
+  ]
+}
